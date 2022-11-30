@@ -1,15 +1,15 @@
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 
-data = pd.read_csv("data/SPY_max_1d.csv",index_col="Date", parse_dates=True)
+data = pd.read_csv("data/SPY_max_1d.csv", index_col="Date", parse_dates=True)
 data['Price'] = data.Close
 
 # Just using 1 years worth for testing....
-data=data.iloc[-365:]
+data = data.iloc[-365:]
 
 initial_set = "downtrend"
 key_figure = 2
@@ -30,15 +30,15 @@ dic_data = {'price': np.nan,
 
 
 def from_uptrend(df_data, k_figure=key_figure):
-    ## to downturn
+    # to downturn
     if np.isnan(df_data['latest_downtrend']) == False and df_data['price'] < df_data['latest_downtrend']:
         df_data['state'] = "downtrend"
         df_data['latest_downtrend'] = df_data['price']
-    ## to reaction or secondary reaction
+    # to reaction or secondary reaction
     elif df_data['price'] < df_data['latest_uptrend'] - k_figure:
         df_data['state'] = "reaction"
         df_data['latest_reaction'] = df_data['price']
-    ## continue
+    # continue
     else:
         df_data['state'] = "uptrend"
         if df_data['price'] > df_data['latest_uptrend'] or np.isnan(df_data['latest_uptrend']) == True:
@@ -48,15 +48,15 @@ def from_uptrend(df_data, k_figure=key_figure):
 
 
 def from_downtrend(df_data, k_figure=key_figure):
-    ## to uptrend
+    # to uptrend
     if np.isnan(df_data['latest_uptrend']) == False and df_data['price'] > df_data['latest_uptrend']:
         df_data['state'] = "uptrend"
         df_data['latest_uptrend'] = df_data['price']
-    ## to rally or secondary rally
+    # to rally or secondary rally
     elif df_data['price'] > df_data['latest_downtrend'] + k_figure:
         df_data['state'] = "rally"
         df_data['latest_rally'] = df_data['price']
-    ## continue
+    # continue
     else:
         df_data['state'] = "downtrend"
         if df_data['price'] < df_data['latest_downtrend'] or np.isnan(df_data['latest_downtrend']) == True:
@@ -66,14 +66,14 @@ def from_downtrend(df_data, k_figure=key_figure):
 
 
 def from_rally(df_data, k_figure=key_figure):
-    ## to uptrend
+    # to uptrend
     if np.isnan(df_data['latest_uptrend']) == False and df_data['price'] > df_data['latest_uptrend']:
         df_data['state'] = "uptrend"
         df_data['latest_uptrend'] = df_data['price']
     elif df_data['price'] > df_data['blackline_rally'] + k_figure / 2:
         df_data['state'] = "uptrend"
         df_data['latest_uptrend'] = df_data['price']
-    ## to reaction
+    # to reaction
     elif df_data['price'] < df_data['latest_rally'] - k_figure:
         if np.isnan(df_data['latest_reaction']) == False and df_data['price'] > df_data['latest_reaction']:
             df_data['state'] = "second_reaction"
@@ -81,7 +81,7 @@ def from_rally(df_data, k_figure=key_figure):
         else:
             df_data['state'] = "reaction"
             df_data['latest_reaction'] = df_data['price']
-    ## continue
+    # continue
     else:
         df_data['state'] = "rally"
         if df_data['price'] > df_data['latest_rally'] or np.isnan(df_data['latest_rally']) == True:
@@ -91,14 +91,14 @@ def from_rally(df_data, k_figure=key_figure):
 
 
 def from_reaction(df_data, k_figure=key_figure):
-    ## to downtrend
+    # to downtrend
     if np.isnan(df_data['latest_downtrend']) == False and df_data['price'] < df_data['latest_downtrend']:
         df_data['state'] = "downtrend"
         df_data['latest_downtrend'] = df_data['price']
     elif df_data['price'] < df_data['redline_reaction'] - k_figure / 2:
         df_data['state'] = "downtrend"
         df_data['latest_downtrend'] = df_data['price']
-    ## to rally
+    # to rally
     elif df_data['price'] > df_data['latest_reaction'] + k_figure:
         if np.isnan(df_data['latest_rally']) == False and df_data['price'] < df_data['latest_rally']:
             df_data['state'] = "second_rally"
@@ -106,7 +106,7 @@ def from_reaction(df_data, k_figure=key_figure):
         else:
             df_data['state'] = "rally"
             df_data['latest_rally'] = df_data['price']
-    ## continue
+    # continue
     else:
         df_data['state'] = "reaction"
         if df_data['price'] < df_data['latest_reaction'] or np.isnan(df_data['latest_reaction']) == True:
@@ -116,31 +116,31 @@ def from_reaction(df_data, k_figure=key_figure):
 
 
 def from_second_rally(df_data, k_figure=key_figure):
-    ## to rally
+    # to rally
     if df_data['price'] > df_data['latest_rally']:
         df_data['state'] = "rally"
         df_data['latest_rally'] = df_data['price']
-    ## to reaction
+    # to reaction
     elif df_data['price'] < df_data['latest_reaction']:
         df_data['state'] = "reaction"
         df_data['latest_reaction'] = df_data['price']
-    ## continue
+    # continue
     else:
         df_data['state'] = "second_rally"
         df_data['latest_second_rally'] = df_data['price']
-    return(df_data)
+    return (df_data)
 
 
 def from_second_reaction(df_data, k_figure=key_figure):
-    ## to reaction
+    # to reaction
     if df_data['price'] < df_data['latest_reaction']:
         df_data['state'] = "reaction"
         df_data['latest_reaction'] = df_data['price']
-    ## to rally
+    # to rally
     elif df_data['price'] > df_data['latest_rally']:
         df_data['state'] = "rally"
         df_data['latest_rally'] = df_data['price']
-    ## continue
+    # continue
     else:
         df_data['state'] = "second_reaction"
         df_data['latest_second_reaction'] = df_data['price']
@@ -148,10 +148,16 @@ def from_second_reaction(df_data, k_figure=key_figure):
 
 
 def liner(df_data, k_figure=key_figure):
+    # (a) On the first day you start recording numbers in the normal adjustment column,
+    #   draw a red line under the most recent number recorded in the upward trend column.
+    #   Start when the first correction is made by about 6 points from the most recent price in the uptrend column.
     if df_data['state'] == "reaction" and df_data['prev_state'] != "reaction":
         if np.isnan(df_data['latest_uptrend']) == False:
             df_data['redline_uptrend'] = df_data['latest_uptrend']
 
+    # (b) On the first day of recording numbers in the usual rebound column or uptrend column,
+    #   Place a red line under the most recent value in the normal adjustment column.
+    #   The starting point is the first rebound of about 6 points from the latest price in the usual adjustment column.
     if df_data['state'] == "rally" and df_data['prev_state'] != "rally":
         if np.isnan(df_data['latest_reaction']) == False:
             df_data['redline_reaction'] = df_data['latest_reaction']
@@ -160,10 +166,16 @@ def liner(df_data, k_figure=key_figure):
         if np.isnan(df_data['latest_reaction']) == False:
             df_data['redline_reaction'] = df_data['latest_reaction']
 
+    # (c) On the first day of recording the numbers in the usual uptrend column,
+    #   draw a black line under the most recent reading in the downtrend column.
+    #   Start when the first rebound of about 6 points is made from the most recent price in the downtrend column.
     if df_data['state'] == "rally" and df_data['prev_state'] != "rally":
         if np.isnan(df_data['latest_downtrend']) == False:
             df_data['blackline_downtrend'] = df_data['latest_downtrend']
 
+    # (d) On the first day of recording figures in the usual correction column or in the downtrend column,
+    #   Draw a black line under the most recent reading in the normal rebound box.
+    #   You would start when the first about 6 points correction was made in the most recent price of the normal rebound box.
     if df_data['state'] == "reaction" and df_data['prev_state'] != "reaction":
         if np.isnan(df_data['latest_reaction']) == False:
             df_data['blackline_rally'] = df_data['latest_rally']
@@ -175,23 +187,24 @@ def liner(df_data, k_figure=key_figure):
     return (df_data)
 
 
-## Initial Setting
+# Initial Setting
 prev_data = dic_data.copy()
 prev_data['price'] = data['Price'][0]
-prev_data['Date'] = data.index[0] # This is so we can index x-axis on Date
+prev_data['Date'] = data.index[0]  # This is so we can index x-axis on Date
 prev_data['prev_state'] = initial_set
 
 df = pd.DataFrame(prev_data, index=[0])
 
-## Iteration
-idx=1
+# Iteration
+idx = 1
 for i in data['Price'][1:]:
     cur_data = prev_data.copy()
     cur_data['price'] = i
     cur_data['state'] = np.nan
 
-    cur_data['Date'] = data.index[idx]  # This is so we can index x-axis on Date
-    idx+=1
+    # This is so we can index x-axis on Date
+    cur_data['Date'] = data.index[idx]
+    idx += 1
 
     if cur_data['prev_state'] == "downtrend":
         cur_data = from_downtrend(cur_data)
@@ -214,36 +227,40 @@ for i in data['Price'][1:]:
     df = df.append(cur_data, ignore_index=True)
     df.to_csv("data/df.csv")
 
-## plotting
+# plotting
 
 days = [d for d in df['Date']]
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
 plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=60))
 
-plt.plot(days,df['price'],color="black",linestyle='solid',lw=0.7)
-plt.plot(days,df['blackline_downtrend'], color="red",linestyle='solid',lw=0.5)
-plt.plot(days,df['blackline_rally'], color="red",linestyle='dashed',lw=0.5)
-plt.plot(days,df['redline_uptrend'], color="green",linestyle='solid',lw=0.5)
-plt.plot(days,df['redline_reaction'], color="green",linestyle='dashed',lw=0.5)
+plt.plot(days, df['price'], color="black", linestyle='solid', lw=0.7)
+plt.plot(days, df['blackline_downtrend'],
+         color="red", linestyle='solid', lw=0.5)
+plt.plot(days, df['blackline_rally'], color="red", linestyle='dashed', lw=0.5)
+plt.plot(days, df['redline_uptrend'], color="green", linestyle='solid', lw=0.5)
+plt.plot(days, df['redline_reaction'],
+         color="green", linestyle='dashed', lw=0.5)
 
 # Add a column for indexing the background color
-df['bgcolor'] = range(1,len(df)+1)
+df['bgcolor'] = range(1, len(df)+1)
 
-background = df[df['state']== 'uptrend']['bgcolor']
+background = df[df['state'] == 'uptrend']['bgcolor']
 for x in background:
-    plt.gca().axvline(df.Date.iloc[x-1], color='green',linewidth=10,alpha=0.05)
+    plt.gca().axvline(df.Date.iloc[x-1],
+                      color='green', linewidth=10, alpha=0.05)
 
-background = df[df['state']== 'downtrend']['bgcolor']
+background = df[df['state'] == 'downtrend']['bgcolor']
 for x in background:
-    plt.gca().axvline(df.Date.iloc[x-1], color='red',linewidth=10,alpha=0.05)
+    plt.gca().axvline(df.Date.iloc[x-1], color='red', linewidth=10, alpha=0.05)
 
-background = df[df['state']== 'rally']['bgcolor']
+background = df[df['state'] == 'rally']['bgcolor']
 for x in background:
-    plt.gca().axvline(df.Date.iloc[x-1], color='green',linewidth=10,alpha=0.01)
+    plt.gca().axvline(df.Date.iloc[x-1],
+                      color='green', linewidth=10, alpha=0.01)
 
-background = df[df['state']== 'reaction']['bgcolor']
+background = df[df['state'] == 'reaction']['bgcolor']
 for x in background:
-    plt.gca().axvline(df.Date.iloc[x-1], color='red',linewidth=10,alpha=0.01)
+    plt.gca().axvline(df.Date.iloc[x-1], color='red', linewidth=10, alpha=0.01)
 
 plt.gcf().autofmt_xdate()
 plt.savefig("image/SPY_Market_Key.png")
